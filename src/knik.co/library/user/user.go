@@ -18,6 +18,7 @@ type User struct {
 	Id    string `json:"user_id"`
 	Email string `json:"user_email"`
 	CreatedAt int64 `json:"created_at"`
+	Admin bool `json:"is_admin"`
 	password string
 
 	// Accounts
@@ -60,6 +61,7 @@ func Create(email, password string) *User {
 		Email: email,
 		password: common.Hash(password),
 		CreatedAt: time.Now().Unix(),
+		Admin: false,
 	}
 }
 
