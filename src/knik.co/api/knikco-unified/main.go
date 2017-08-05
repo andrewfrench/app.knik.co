@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
 	"log"
 	"knik.co/library/handlers"
+	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
 )
 
 type incoming struct {
@@ -25,6 +25,11 @@ func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 	defer log.Printf("Exiting Handle")
 
 	switch evt.Resource {
+	case "interest-email":
+		return handlers.InterestEmailHander(&handlers.InterestEmailRequest{
+			Email: evt.Email,
+		}), nil
+
 	case "signin":
 		return handlers.SignInHandler(&handlers.SignInRequest{
 			Email: evt.Email,
