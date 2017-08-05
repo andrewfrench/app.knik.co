@@ -51,7 +51,7 @@ func Query(input *dynamodb.QueryInput) (*dynamodb.QueryOutput, error) {
 	return db.Query(input)
 }
 
-func Exists(idField, id, table string) bool {
+func Exists(idField, id string, table *string) bool {
 	log.Println("Checking if item exists")
 	params := &dynamodb.QueryInput{
 		KeyConditions: map[string]*dynamodb.Condition{
@@ -62,7 +62,7 @@ func Exists(idField, id, table string) bool {
 				},
 			},
 		},
-		TableName: aws.String(table),
+		TableName: table,
 	}
 
 	resp, err := Query(params)

@@ -7,20 +7,24 @@ import (
 	"fmt"
 	"time"
 	"knik.co/library/database"
+	"os"
 )
 
 type InterestEmailRequest struct {
 	Email string
 }
 
-const table string = "knik.co-interest-emails"
+func table() *string {
+	s := os.Getenv("TABLE_INTEREST_EMAILS")
+	return &s
+}
 
 func InterestEmailHander(req *InterestEmailRequest) map[string]interface{} {
 	log.Printf("Entering InterestEmailHandler")
 	defer log.Printf("Exiting InterestEmailHandler")
 
 	params := &dynamodb.PutItemInput{
-		TableName: &table,
+		TableName: table(),
 		Item: map[string]*dynamodb.AttributeValue{
 			"email": {S: &req.Email},
 			"timestamp": {N: aws.String(fmt.Sprintf("%s", time.Now().Unix()))},

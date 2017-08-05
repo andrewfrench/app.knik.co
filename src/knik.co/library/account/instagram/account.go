@@ -13,6 +13,7 @@ import (
 	ig "github.com/andrewfrench/instagram-api-bypass/account"
 	"knik.co/library/account"
 	"encoding/json"
+	"os"
 )
 
 type Account struct {
@@ -38,13 +39,16 @@ type Account struct {
 	PostPeriod		 int64 `json:"post_period"`
 }
 
-const table string = "knik.co-accounts-instagram"
+func table() *string {
+	s := os.Getenv("TABLE_ACCOUNTS_INSTAGRAM")
+	return &s
+}
 
 func Create(ownerId, username string) *Account {
 	log.Println("Creating account")
 
 	randomId := random.RandomString(10)
-	for database.Exists("account_id", randomId, table) {
+	for database.Exists("account_id", randomId, table()) {
 		randomId = random.RandomString(10)
 	}
 
@@ -65,7 +69,7 @@ func GetAccountById(accountId string) (*Account, error) {
 		Key: map[string]*dynamodb.AttributeValue{
 			"account_id": {S:aws.String(accountId)},
 		},
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.GetItem(params)
@@ -87,7 +91,7 @@ func GetAccountsByOwnerId(ownerId string) ([]Account, error) {
 			":owner_id": {S: aws.String(ownerId)},
 		},
 		KeyConditionExpression: aws.String("owner_id = :owner_id"),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.Query(params)
@@ -113,7 +117,7 @@ func AccountIdExists(instagramId string) bool {
 			":instagram_id": {S: aws.String(instagramId)},
 		},
 		KeyConditionExpression: aws.String("instagram_id = :instagram_id"),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.Query(params)
@@ -129,7 +133,7 @@ func (a *Account) Insert() error {
 
 	params := &dynamodb.PutItemInput{
 		Item: a.attributeValues(),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	_, err := database.PutItem(params)

@@ -10,15 +10,19 @@ import (
 	"log"
 	"strconv"
 	"errors"
+	"os"
 )
-
-const table string = "knik.co-sessions"
 
 type Session struct {
 	SessionId string
 	UserId string
 	CreatedAt time.Time
 	ExpiresAt time.Time
+}
+
+func table() *string {
+	s := os.Getenv("TABLE_SESSIONS")
+	return &s
 }
 
 func Create(userId string) *Session {
@@ -29,7 +33,7 @@ func Create(userId string) *Session {
 	}
 
 	sessionId := random.RandomString(32)
-	for database.Exists("session_id", sessionId, table) {
+	for database.Exists("session_id", sessionId, table()) {
 		sessionId = random.RandomString(32)
 	}
 
@@ -84,7 +88,7 @@ func GetSessionBySessionId(sessionId string) (*Session, error) {
 		Key: map[string]*dynamodb.AttributeValue{
 			"session_id": {S: aws.String(sessionId)},
 		},
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.GetItem(params)
@@ -108,7 +112,7 @@ func (s *Session) Delete() error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"session_id": {S: aws.String(s.SessionId)},
 		},
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	_, err := database.DeleteItem(params)
@@ -128,7 +132,7 @@ func GetSessionByUserId(userId string) (*Session, error) {
 			":user_id": {S: aws.String(userId)},
 		},
 		KeyConditionExpression: aws.String("user_id = :user_id"),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.Query(params)
@@ -149,7 +153,7 @@ func (s *Session) Insert() error {
 
 	params := &dynamodb.PutItemInput{
 		Item: s.AttributeValues(),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	_, err := database.PutItem(params)

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"knik.co/library/account/instagram"
 	"knik.co/library/common"
+	"os"
 )
 
 type User struct {
@@ -22,8 +23,6 @@ type User struct {
 	// Accounts
 	Accounts []instagram.Account `json:"accounts"`
 }
-
-const table string = "knik.co-users"
 
 type igApiResponse struct {
 	Data struct {
@@ -41,12 +40,17 @@ type igApiResponse struct {
 	} `json:"data"`
 }
 
+func table() *string {
+	s := os.Getenv("TABLE_USERS")
+	return &s
+}
+
 func Create(email, password string) *User {
 	log.Println("Creating user struct")
 
 	log.Println("Generating user ID")
 	id := random.RandomString(10)
-	for database.Exists("user_id", id, table) {
+	for database.Exists("user_id", id, table()) {
 		log.Printf("User ID %s already allocated, generating another...", id)
 		id = random.RandomString(10)
 	}
@@ -68,7 +72,7 @@ func GetUserByEmail(email string) (*User, error) {
 			":email": {S: aws.String(email)},
 		},
 		KeyConditionExpression: aws.String("user_email=:email"),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.Query(params)
@@ -114,7 +118,7 @@ func (u *User) Insert() error {
 
 	params := &dynamodb.PutItemInput{
 		Item: u.AttributeValues(),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	_, err := database.PutItem(params)
@@ -131,7 +135,7 @@ func GetUserById(id string) (*User, error) {
 				S: aws.String(id),
 			},
 		},
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	resp, err := database.GetItem(params)
@@ -147,7 +151,7 @@ func GetUserById(id string) (*User, error) {
 func (u *User) UpdateExistingUser() error {
 	params := &dynamodb.PutItemInput{
 		Item: u.AttributeValues(),
-		TableName: aws.String(table),
+		TableName: table(),
 	}
 
 	_, err := database.PutItem(params)
