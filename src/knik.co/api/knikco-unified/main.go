@@ -58,6 +58,11 @@ func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 			AccountId: evt.AccountId,
 		}), nil
 
+	case "get-users":
+		return handlers.GetUsersHandler(&handlers.GetUsersRequest{
+			Token: evt.Token,
+		}), nil
+
 	case "update-account":
 		return handlers.UpdateAccountHandler(&handlers.UpdateAccountRequest{
 			Token: evt.Token,

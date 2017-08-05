@@ -128,6 +128,37 @@ func (u *User) Insert() error {
 	return err
 }
 
+func GetUsers() ([]*User, error) {
+	log.Printf("Entering GetUsers")
+	defer log.Printf("Exiting GetUsers")
+
+	params := &dynamodb.ScanInput{
+		TableName: table(),
+	}
+
+	resp, err := database.Scan(params)
+	if err != nil {
+		return []*User{}, err
+	}
+
+	users := []*User{}
+	for _, item := range resp.Items {
+		u, err := responseItemToUser(item)
+		if err != nil {
+			continue
+		}
+
+		u.Accounts, err = instagram.GetAccountsByOwnerId(u.Id)
+		if err != nil {
+			continue
+		}
+
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 func GetUserById(id string) (*User, error) {
 	log.Printf("Getting user with id: %s", id)
 
