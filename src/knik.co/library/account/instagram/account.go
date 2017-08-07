@@ -148,7 +148,7 @@ func (a *Account) RefreshIfStale() {
 	log.Printf("Entering account.RefreshIfStale()")
 	defer log.Printf("Exiting account.RefreshIfStale()")
 
-	if time.Now().After(time.Unix(a.UpdatedAt, 0).Add(time.Hour)) {
+	if time.Now().After(time.Unix(a.UpdatedAt, 0).Add(24 * time.Hour)) {
 		log.Printf("Account information is stale")
 		a.Refresh()
 	} else {
