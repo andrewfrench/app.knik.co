@@ -26,20 +26,14 @@ func table() *string {
 }
 
 func Create(userId string) *Session {
-	if UserHasValidSession(userId) {
-		log.Println("User has a valid session")
-		sess, _ := GetSessionByUserId(userId)
-		sess.Delete()
-	}
-
-	sessionId := random.RandomString(32)
-	for database.Exists("session_id", sessionId, table()) {
-		sessionId = random.RandomString(32)
+	id := random.RandomString(32)
+	for database.Exists("session_id", id, table()) {
+		id = random.RandomString(32)
 	}
 
 	return &Session{
-		SessionId: sessionId,
-		UserId: userId,
+		SessionId: id,
+		UserId:    userId,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}

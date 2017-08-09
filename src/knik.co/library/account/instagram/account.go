@@ -172,7 +172,7 @@ func (a *Account) Refresh() {
 	if len(a.RecentMedia) > 0 {
 		a.RecentImageUrl = a.RecentMedia[0].ThumbnalSrc
 	}
-	
+
 	a.Insert()
 }
 
