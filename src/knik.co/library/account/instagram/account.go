@@ -168,6 +168,11 @@ func (a *Account) Refresh() {
 	a.UpdatedAt = time.Now().Unix()
 	a.RecentMedia = acc.RecentMedia
 	a.ProfilePicUrl = acc.ProfilePicUrl
+
+	if len(a.RecentMedia) > 0 {
+		a.RecentImageUrl = a.RecentMedia[0].ThumbnalSrc
+	}
+	
 	a.Insert()
 }
 
