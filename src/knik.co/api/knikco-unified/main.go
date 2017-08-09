@@ -73,6 +73,13 @@ func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 			Summary: evt.Summary,
 		}), nil
 
+	case "update-username":
+		return handlers.UpdateUsernameHandler(&handlers.UpdateUsernameRequest{
+			Token: evt.Token,
+			AccountId: evt.AccountId,
+			Username: evt.Username,
+		}), nil
+
 	case "get-auth-code":
 		return handlers.GetAuthCodeHandler(&handlers.GetAuthCodeRequest{
 			Token: evt.Token,
