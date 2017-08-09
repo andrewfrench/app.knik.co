@@ -43,6 +43,8 @@ func GetAccountHandler(req *GetAccountRequest) map[string]interface{} {
 	ownedByUser := a.OwnerId == u.Id
 	log.Printf("Account owned by user: %t", ownedByUser)
 
+	a.RefreshIfStale()
+
 	return map[string]interface{}{
 		"account": a,
 		"owned_by_user": ownedByUser,

@@ -78,7 +78,6 @@ func GetAccountById(accountId string) (*Account, error) {
 	}
 
 	acc := responseItemToAccount(resp.Item)
-	acc.RefreshIfStale()
 	return &acc, err
 }
 
@@ -208,9 +207,13 @@ func (a *Account) Verify() error {
 	a.Url = fmt.Sprintf("https://www.instagram.com/%s/", acc.Username)
 	a.Followers = acc.Followers
 	a.VerificationCode = actualCode
-	a.RecentImageUrl = acc.RecentMedia[0].ThumbnalSrc
 	a.RecentMedia = acc.RecentMedia
 	a.ProfilePicUrl = acc.ProfilePicUrl
+
+	if len(acc.RecentMedia) > 0 {
+		a.RecentImageUrl = acc.RecentMedia[0].ThumbnalSrc
+	}
+
 	return a.Insert()
 }
 
@@ -228,8 +231,11 @@ func (a *Account) attributeValues() map[string]*dynamodb.AttributeValue {
 		"verified_at": {N: aws.String(fmt.Sprintf("%d", a.VerifiedAt))},
 		"created_at": {N: aws.String(fmt.Sprintf("%d", a.CreatedAt))},
 		"updated_at": {N: aws.String(fmt.Sprintf("%d", a.UpdatedAt))},
-		"recent_image_url": {S: aws.String(a.RecentImageUrl)},
 		"instagram_id": {S: aws.String(a.InstagramId)},
+	}
+
+	if len(a.RecentImageUrl) > 0 {
+		avm["recent_image_url"] = &dynamodb.AttributeValue{S: aws.String(a.RecentImageUrl)}
 	}
 
 	if len(a.ProfilePicUrl) > 0 {
@@ -281,8 +287,11 @@ func responseItemToAccount(item map[string]*dynamodb.AttributeValue) Account {
 		VerificationCode: *item["verification_code"].S,
 		CreatedAt:        int64(createdAtInt),
 		UpdatedAt:        int64(updatedAtInt),
-		RecentImageUrl:   *item["recent_image_url"].S,
 		InstagramId:	  *item["instagram_id"].S,
+	}
+
+	if f, e := item["recent_image_url"]; e {
+		a.RecentImageUrl = *f.S
 	}
 
 	if f, e := item["profile_pic_url"]; e{
