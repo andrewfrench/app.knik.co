@@ -4,6 +4,7 @@ import (
 	"log"
 	"knik.co/library/handlers"
 	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
+	"strings"
 )
 
 type incoming struct {
@@ -23,6 +24,9 @@ type incoming struct {
 func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 	log.Printf("Entering Handle")
 	defer log.Printf("Exiting Handle")
+
+	evt.Username = strings.ToLower(evt.Username)
+	evt.Email = strings.ToLower(evt.Email)
 
 	switch evt.Resource {
 	case "interest-email":

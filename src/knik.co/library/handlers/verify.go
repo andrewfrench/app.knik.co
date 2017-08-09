@@ -33,7 +33,6 @@ func VerifyHandler(req *VerifyRequest) map[string]interface{} {
 		}
 	}
 
-	// TODO: Get recent media cache here, move cache validity logic to account getter
 	// TODO: Bust out checks to ensure account isn't verified to their own methods, do that check here
 	acc := instagram.Create(u.Id, req.Username)
 	err = acc.Verify()
