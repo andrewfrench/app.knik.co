@@ -13,7 +13,7 @@ func (u *User) AttributeValues() map[string]*dynamodb.AttributeValue {
 		"user_id": {S: aws.String(u.Id)},
 		"user_email": {S: aws.String(u.Email)},
 		"user_created_at": {S: aws.String(fmt.Sprintf("%d", u.CreatedAt))},
-		"user_password": {S: aws.String(u.password)},
+		"user_password": {S: aws.String(u.Password)},
 		"is_admin": {BOOL: &u.Admin},
 	}
 }
@@ -25,10 +25,10 @@ func responseItemToUser(item map[string]*dynamodb.AttributeValue) (*User, error)
 	}
 
 	return &User{
-		Id: *item["user_id"].S,
-		Email: *item["user_email"].S,
+		Id:        *item["user_id"].S,
+		Email:     *item["user_email"].S,
 		CreatedAt: int64(createdAt),
-		Admin: *item["is_admin"].BOOL,
-		password: *item["user_password"].S,
+		Admin:     *item["is_admin"].BOOL,
+		Password:  *item["user_password"].S,
 	}, err
 }

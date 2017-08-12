@@ -15,11 +15,11 @@ import (
 
 type User struct {
 	// General profile information
-	Id    string `json:"user_id"`
-	Email string `json:"user_email"`
+	Id        string `json:"user_id"`
+	Email     string `json:"user_email"`
 	CreatedAt int64 `json:"created_at"`
-	Admin bool `json:"is_admin"`
-	password string
+	Admin     bool `json:"is_admin"`
+	Password  string
 
 	// Accounts
 	Accounts []instagram.Account `json:"accounts"`
@@ -57,11 +57,11 @@ func Create(email, password string) *User {
 	}
 
 	return &User{
-		Id: id,
-		Email: email,
-		password: common.Hash(password),
+		Id:        id,
+		Email:     email,
+		Password:  common.Hash(password),
 		CreatedAt: time.Now().Unix(),
-		Admin: false,
+		Admin:     false,
 	}
 }
 
@@ -107,9 +107,9 @@ func Authenticate(email, password string) (*User, error) {
 		return &User{}, err
 	}
 
-	if u.password != common.Hash(password) {
-		log.Println("Bad password")
-		return &User{}, errors.New("Bad password")
+	if u.Password != common.Hash(password) {
+		log.Println("Bad Password")
+		return &User{}, errors.New("Bad Password")
 	}
 
 	return u, err
@@ -174,6 +174,11 @@ func GetUserById(id string) (*User, error) {
 	resp, err := database.GetItem(params)
 	if err != nil {
 		return &User{}, err
+	}
+
+	if len(resp.Item) == 0 {
+		log.Printf("No such user exists")
+		return &User{}, errors.New("No such user exists")
 	}
 
 	u, err := responseItemToUser(resp.Item)

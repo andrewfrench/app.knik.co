@@ -19,6 +19,7 @@ type incoming struct {
 	Summary string `json:"summary"`
 	Username string `json:"username"`
 	AuthCode string `json:"auth_code"`
+	NewPassword string `json:"new_password"`
 }
 
 func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
@@ -95,6 +96,13 @@ func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 			Token: evt.Token,
 			Username: evt.Username,
 			AuthCode: evt.AuthCode,
+		}), nil
+
+	case "update-password":
+		return handlers.UpdatePasswordHandler(&handlers.UpdatePasswordRequest{
+			Token: evt.Token,
+			Password: evt.Password,
+			NewPassword: evt.Password,
 		}), nil
 	}
 

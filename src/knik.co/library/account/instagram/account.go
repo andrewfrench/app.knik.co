@@ -14,6 +14,7 @@ import (
 	"knik.co/library/account"
 	"encoding/json"
 	"os"
+	"math"
 )
 
 type Account struct {
@@ -27,6 +28,7 @@ type Account struct {
 	VerificationCode string
 	Username         string `json:"username"`
 	Followers        int    `json:"followers"`
+	Following		 int
 	Url              string `json:"url"`
 	ProfilePicUrl	 string `json:"profile_pic_url"`
 	RecentImageUrl   string `json:"recent_image_url"`
@@ -37,6 +39,7 @@ type Account struct {
 	Summary          string `json:"summary"`
 	AverageInteractions float32 `json:"average_interactions"`
 	PostPeriod		 int64 `json:"post_period"`
+	KScore			 int `json:"k_score"`
 }
 
 func table() *string {
@@ -168,6 +171,9 @@ func (a *Account) Refresh() {
 	a.UpdatedAt = time.Now().Unix()
 	a.RecentMedia = acc.RecentMedia
 	a.ProfilePicUrl = acc.ProfilePicUrl
+	a.CalculateAverageInteractions()
+	a.CalculatePostPeriod()
+	a.CalculateKScore()
 
 	if len(a.RecentMedia) > 0 {
 		a.RecentImageUrl = a.RecentMedia[0].ThumbnalSrc
@@ -211,6 +217,7 @@ func (a *Account) Verify() error {
 	a.UpdatedAt = time.Now().Unix()
 	a.Url = fmt.Sprintf("https://www.instagram.com/%s/", acc.Username)
 	a.Followers = acc.Followers
+	a.Following = acc.Following
 	a.VerificationCode = actualCode
 	a.RecentMedia = acc.RecentMedia
 	a.ProfilePicUrl = acc.ProfilePicUrl
@@ -232,11 +239,13 @@ func (a *Account) attributeValues() map[string]*dynamodb.AttributeValue {
 		"url": {S: aws.String(a.Url)},
 		"is_verified": {BOOL: aws.Bool(a.IsVerified)},
 		"followers": {N: aws.String(fmt.Sprintf("%d", a.Followers))},
+		"following": {N: aws.String(fmt.Sprintf("%d", a.Following))},
 		"verification_code": {S: aws.String(a.VerificationCode)},
 		"verified_at": {N: aws.String(fmt.Sprintf("%d", a.VerifiedAt))},
 		"created_at": {N: aws.String(fmt.Sprintf("%d", a.CreatedAt))},
 		"updated_at": {N: aws.String(fmt.Sprintf("%d", a.UpdatedAt))},
 		"instagram_id": {S: aws.String(a.InstagramId)},
+		"k_score": {N: aws.String(fmt.Sprintf("%d", a.KScore))},
 	}
 
 	if len(a.RecentImageUrl) > 0 {
@@ -295,6 +304,14 @@ func responseItemToAccount(item map[string]*dynamodb.AttributeValue) Account {
 		InstagramId:	  *item["instagram_id"].S,
 	}
 
+	if f, e := item["following"]; e {
+		a.Following, _ = strconv.Atoi(*f.N)
+	}
+
+	if f, e := item["k_score"]; e {
+		a.KScore, _ = strconv.Atoi(*f.N)
+	}
+
 	if f, e := item["recent_image_url"]; e {
 		a.RecentImageUrl = *f.S
 	}
@@ -326,6 +343,21 @@ func responseItemToAccount(item map[string]*dynamodb.AttributeValue) Account {
 		}
 	}
 
+	a.CalculateAverageInteractions()
+	a.CalculatePostPeriod()
+	a.CalculateKScore()
+
+	return a
+}
+
+func (a *Account) CalculatePostPeriod() {
+	if len(a.RecentMedia) > 0 {
+		timeDiff := a.RecentMedia[0].Date - a.RecentMedia[len(a.RecentMedia) - 1].Date
+		a.PostPeriod = int64(timeDiff) / int64(len(a.RecentMedia))
+	}
+}
+
+func (a *Account) CalculateAverageInteractions() {
 	if len(a.RecentMedia) > 0 {
 		interactions := 0
 		for _, m := range a.RecentMedia {
@@ -338,6 +370,18 @@ func responseItemToAccount(item map[string]*dynamodb.AttributeValue) Account {
 		timeDiff := a.RecentMedia[0].Date - a.RecentMedia[len(a.RecentMedia) - 1].Date
 		a.PostPeriod = int64(timeDiff) / int64(len(a.RecentMedia))
 	}
+}
 
-	return a
+func (a *Account) CalculateKScore() {
+	var ratio float32
+	if a.Following > 0 {
+		ratio = float32(a.Followers) / (2 * float32(a.Following))
+		if ratio > 1 {
+			ratio = 1
+		}
+	} else {
+		ratio = 1
+	}
+
+	a.KScore = int(float32(a.Followers + int(math.Ceil(float64(a.AverageInteractions)))) * ratio)
 }

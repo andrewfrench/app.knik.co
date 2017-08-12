@@ -22,6 +22,7 @@ func VerifyHandler(req *VerifyRequest) map[string]interface{} {
 		log.Printf("Error getting session: %s", err.Error())
 		return map[string]interface{}{
 			"error": "Unauthenticated",
+			"unauthenticated": true,
 		}
 	}
 
@@ -30,6 +31,7 @@ func VerifyHandler(req *VerifyRequest) map[string]interface{} {
 		log.Printf("Error getting user: %s", err.Error())
 		return map[string]interface{}{
 			"error": "Unauthenticated",
+			"unauthenticated": true,
 		}
 	}
 

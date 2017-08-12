@@ -3,8 +3,6 @@ package handlers
 import (
 	"log"
 	"knik.co/library/account/instagram"
-	"knik.co/library/session"
-	"knik.co/library/user"
 )
 
 type UpdateAccountRequest struct {
@@ -20,20 +18,9 @@ func UpdateAccountHandler(req *UpdateAccountRequest) map[string]interface{} {
 	log.Printf("Entering UpdateAccountHandler")
 	defer log.Printf("Exiting UpdateAccountHandler")
 
-	s, err := session.GetSessionBySessionId(req.Token)
-	if err != nil {
-		log.Printf("Error getting session: %s", err.Error())
-		return map[string]interface{}{
-			"error": "Unauthenticated",
-		}
-	}
-
-	u, err := user.GetUserById(s.UserId)
-	if err != nil {
-		log.Printf("Error getting user: %s", err.Error())
-		return map[string]interface{}{
-			"error": "Unauthenticated",
-		}
+	_, u, resp := EnsureAuthentication(req.Token)
+	if len(resp) > 0 {
+		return resp
 	}
 
 	a, err := instagram.GetAccountById(req.AccountId)

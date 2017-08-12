@@ -39,42 +39,6 @@ func Create(userId string) *Session {
 	}
 }
 
-func UserHasValidSession(userId string) bool {
-	log.Println("Checking if user has a valid session")
-
-	sess, err := GetSessionByUserId(userId)
-	if err != nil {
-		return false
-	}
-
-	if sess.ExpiresAt.Before(time.Now()) {
-		log.Println("Session exists, but has expired")
-		sess.Delete()
-		return false
-	}
-
-	return true
-}
-
-func Authenticate(sessionId, userId string) bool {
-	log.Printf("Authenticating session with id: %s and user with id: %s", sessionId, userId)
-
-	sess, err := GetSessionBySessionId(sessionId)
-	if err != nil {
-		return false
-	}
-
-	if sess.ExpiresAt.Before(time.Now()) {
-		return false
-	}
-
-	if sess.UserId != userId {
-		return false
-	}
-
-	return true
-}
-
 func GetSessionBySessionId(sessionId string) (*Session, error) {
 	log.Printf("Getting session with ID: %s", sessionId)
 
@@ -91,12 +55,12 @@ func GetSessionBySessionId(sessionId string) (*Session, error) {
 		return &Session{}, err
 	}
 
-	s := responseItemToSession(resp.Item)
-	if s.SessionId == "" {
+	if len(resp.Item) == 0 {
+		log.Printf("No such session exists")
 		return &Session{}, errors.New("No session exists")
 	}
 
-	return s, err
+	return responseItemToSession(resp.Item), err
 }
 
 func (s *Session) Delete() error {
@@ -115,31 +79,6 @@ func (s *Session) Delete() error {
 	}
 
 	return err
-}
-
-func GetSessionByUserId(userId string) (*Session, error) {
-	log.Printf("Checking for existing session with userId %s", userId)
-
-	params := &dynamodb.QueryInput{
-		IndexName: aws.String("user_id-index"),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":user_id": {S: aws.String(userId)},
-		},
-		KeyConditionExpression: aws.String("user_id = :user_id"),
-		TableName: table(),
-	}
-
-	resp, err := database.Query(params)
-	if err != nil {
-		log.Printf("Error getting session by user id: %s", err.Error())
-		return &Session{}, err
-	}
-
-	if *resp.Count == 0 {
-		return &Session{}, err
-	}
-
-	return responseItemToSession(resp.Items[0]), err
 }
 
 func (s *Session) Insert() error {

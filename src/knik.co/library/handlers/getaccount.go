@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"log"
-	"knik.co/library/session"
-	"knik.co/library/user"
 	"knik.co/library/account/instagram"
 )
 
@@ -16,20 +14,9 @@ func GetAccountHandler(req *GetAccountRequest) map[string]interface{} {
 	log.Printf("Entering GetAccountHandler")
 	defer log.Printf("Exiting GetAccountHandler")
 
-	s, err := session.GetSessionBySessionId(req.Token)
-	if err != nil {
-		log.Printf("Error getting session: %s", err.Error())
-		return map[string]interface{}{
-			"error": "Unauthenticated",
-		}
-	}
-
-	u, err := user.GetUserById(s.UserId)
-	if err != nil {
-		log.Printf("Error getting user: %s", err.Error())
-		return map[string]interface{}{
-			"error": "Unauthenticated",
-		}
+	_, u, resp := EnsureAuthentication(req.Token)
+	if len(resp) > 0 {
+		return resp
 	}
 
 	a, err := instagram.GetAccountById(req.AccountId)
@@ -42,6 +29,14 @@ func GetAccountHandler(req *GetAccountRequest) map[string]interface{} {
 
 	ownedByUser := a.OwnerId == u.Id
 	log.Printf("Account owned by user: %t", ownedByUser)
+
+	if !(u.Admin || ownedByUser) {
+		log.Printf("User does not have credentials to view this account")
+		return map[string]interface{}{
+			"error": "You cannot view this account",
+			"bounce": true,
+		}
+	}
 
 	a.RefreshIfStale()
 
