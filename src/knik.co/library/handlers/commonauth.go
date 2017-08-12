@@ -37,7 +37,7 @@ func EnsureAdminAuthentication(token string) (*session.Session, *user.User, map[
 		"bounce": true,
 	}
 
-	s, u, unauthenticatedResponse := EnsureAdminAuthentication(token)
+	s, u, unauthenticatedResponse := EnsureAuthentication(token)
 	if len(unauthenticatedResponse) > 0 {
 		return s, u, unauthenticatedResponse
 	}
