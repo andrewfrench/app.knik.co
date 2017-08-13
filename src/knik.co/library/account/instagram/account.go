@@ -80,6 +80,11 @@ func GetAccountById(accountId string) (*Account, error) {
 		return &Account{}, err
 	}
 
+	if len(resp.Item) == 0 {
+		log.Printf("Account not found")
+		return &Account{}, errors.New("Account not found")
+	}
+
 	acc := responseItemToAccount(resp.Item)
 	return &acc, err
 }

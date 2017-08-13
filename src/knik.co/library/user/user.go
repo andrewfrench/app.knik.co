@@ -19,26 +19,11 @@ type User struct {
 	Email     string `json:"user_email"`
 	CreatedAt int64 `json:"created_at"`
 	Admin     bool `json:"is_admin"`
-	Password  string
+
+	password  string
 
 	// Accounts
 	Accounts []instagram.Account `json:"accounts"`
-}
-
-type igApiResponse struct {
-	Data struct {
-		Id             string `json:"id"`
-		Username       string `json:"username"`
-		FullName       string `json:"full_name"`
-		ProfilePicture string `json:"profile_picture"`
-		Bio            string `json:"bio"`
-		Website        string `json:"website"`
-		Counts struct {
-			Media      int `json:"media"`
-			Follows    int `json:"follows"`
-			FollowedBy int `json:"followed_by"`
-		} `json:"counts"`
-	} `json:"data"`
 }
 
 func table() *string {
@@ -59,7 +44,7 @@ func Create(email, password string) *User {
 	return &User{
 		Id:        id,
 		Email:     email,
-		Password:  common.Hash(password),
+		password:  common.Hash(password),
 		CreatedAt: time.Now().Unix(),
 		Admin:     false,
 	}
@@ -107,12 +92,19 @@ func Authenticate(email, password string) (*User, error) {
 		return &User{}, err
 	}
 
-	if u.Password != common.Hash(password) {
-		log.Println("Bad Password")
-		return &User{}, errors.New("Bad Password")
+	if u.password != common.Hash(password) {
+		log.Println("Bad password")
+		return &User{}, errors.New("Bad password")
 	}
 
 	return u, err
+}
+
+func (u *User) SetPassword(newPassword string) {
+	log.Printf("Entering u.SetPassword")
+	defer log.Printf("Exiting u.SetPassword")
+
+	u.password = common.Hash(newPassword)
 }
 
 func (u *User) Insert() error {

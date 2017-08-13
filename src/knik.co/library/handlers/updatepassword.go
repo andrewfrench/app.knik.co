@@ -4,7 +4,6 @@ import (
 	"log"
 	"knik.co/library/user"
 	"fmt"
-	"knik.co/library/common"
 )
 
 type UpdatePasswordRequest struct {
@@ -38,8 +37,14 @@ func UpdatePasswordHandler(req *UpdatePasswordRequest) map[string]interface{} {
 		}
 	}
 
-	u.Password = common.Hash(req.NewPassword)
-	u.Insert()
+	u.SetPassword(req.NewPassword)
+	err = u.Insert()
+	if err != nil {
+		log.Printf("Error inserting updated user: %s", err.Error())
+		return map[string]interface{}{
+			"error": "Unable to update password",
+		}
+	}
 
 	return map[string]interface{}{
 		"success": true,

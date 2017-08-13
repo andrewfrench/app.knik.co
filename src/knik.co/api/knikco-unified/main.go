@@ -102,7 +102,7 @@ func Handle(evt *incoming, ctx *runtime.Context) (interface{}, error) {
 		return handlers.UpdatePasswordHandler(&handlers.UpdatePasswordRequest{
 			Token: evt.Token,
 			Password: evt.Password,
-			NewPassword: evt.Password,
+			NewPassword: evt.NewPassword,
 		}), nil
 	}
 

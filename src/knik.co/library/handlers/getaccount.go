@@ -24,6 +24,7 @@ func GetAccountHandler(req *GetAccountRequest) map[string]interface{} {
 		log.Printf("Error getting account: %s", err.Error())
 		return map[string]interface{}{
 			"error": "Account not found",
+			"bounce": true,
 		}
 	}
 

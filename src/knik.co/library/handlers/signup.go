@@ -18,9 +18,9 @@ func SignUpHandler(req *SignUpRequest) map[string]interface{} {
 
 	minPasswordLength := 6
 	if len(req.Password) < minPasswordLength {
-		log.Printf("Password too short")
+		log.Printf("password too short")
 		return map[string]interface{}{
-			"error": fmt.Sprintf("Password must be %d characters long", minPasswordLength),
+			"error": fmt.Sprintf("password must be %d characters long", minPasswordLength),
 		}
 	}
 
